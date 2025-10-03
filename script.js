@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Получаем все элементы с проверкой на существование
     const tableBody = document.querySelector('#health-table tbody');
     const saveNotice = document.getElementById('save-notice');
     const savePdfBtn = document.getElementById('savePdfBtn');
@@ -6,6 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const setSyncIdBtn = document.getElementById('setSyncId');
     const generateSyncIdBtn = document.getElementById('generateSyncId');
     const syncStatus = document.getElementById('sync-status');
+    
+    // Проверяем, что все необходимые элементы существуют
+    if (!tableBody || !saveNotice || !savePdfBtn || !syncIdInput || !setSyncIdBtn || !generateSyncIdBtn || !syncStatus) {
+        console.error('Не все необходимые элементы найдены в DOM');
+        return;
+    }
     
     let savedData = JSON.parse(localStorage.getItem('healthData')) || {};
     let syncId = localStorage.getItem('healthSyncId') || '';
@@ -15,10 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let database;
     try {
         database = firebase.database();
+        console.log('Firebase инициализирован');
     } catch (error) {
         console.error('Ошибка Firebase:', error);
-        syncStatus.textContent = 'Ошибка подключения к облаку';
-        syncStatus.className = 'sync-status error';
+        showSyncStatus('Ошибка подключения к облаку', 'error');
     }
     
     // Установка syncId если он есть
@@ -52,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         morningInput.placeholder = '36.6';
         morningInput.value = savedData[date]?.morningTemp || '';
         morningInput.addEventListener('change', saveData);
+        morningInput.addEventListener('input', saveData);
         morningTempCell.appendChild(morningInput);
         row.appendChild(morningTempCell);
         
@@ -64,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
         eveningInput.placeholder = '36.6';
         eveningInput.value = savedData[date]?.eveningTemp || '';
         eveningInput.addEventListener('change', saveData);
+        eveningInput.addEventListener('input', saveData);
         eveningTempCell.appendChild(eveningInput);
         row.appendChild(eveningTempCell);
         
@@ -78,13 +87,13 @@ document.addEventListener('DOMContentLoaded', function() {
         tableBody.appendChild(row);
     });
     
-    // Функции для преобразования ключей (замена точек на дефисы для Firebase)
+    // Функции для преобразования ключей (замена точек на подчеркивания для Firebase)
     function convertToFirebaseKey(date) {
-        return date.replace(/\./g, '_'); // Заменяем точки на подчеркивания
+        return date.replace(/\./g, '_');
     }
     
     function convertFromFirebaseKey(firebaseKey) {
-        return firebaseKey.replace(/_/g, '.'); // Заменяем подчеркивания обратно на точки
+        return firebaseKey.replace(/_/g, '.');
     }
     
     function convertDataForFirebase(data) {
@@ -126,10 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         savedData = data;
         localStorage.setItem('healthData', JSON.stringify(savedData));
         
-        saveNotice.classList.add('show');
-        setTimeout(() => {
-            saveNotice.classList.remove('show');
-        }, 2000);
+        showSaveNotice('Данные сохранены!');
         
         // Синхронизация с Firebase
         if (syncId && database) {
@@ -141,8 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function syncDataToFirebase() {
         if (!syncId || !database) return;
         
-        syncStatus.textContent = 'Синхронизация...';
-        syncStatus.className = 'sync-status syncing';
+        showSyncStatus('Синхронизация...', 'syncing');
         
         clearTimeout(syncTimeout);
         syncTimeout = setTimeout(() => {
@@ -159,18 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             database.ref('healthData/' + syncId).set(syncData)
                 .then(() => {
-                    syncStatus.textContent = 'Данные синхронизированы';
-                    syncStatus.className = 'sync-status success';
-                    
-                    setTimeout(() => {
-                        syncStatus.textContent = '';
-                        syncStatus.className = 'sync-status';
-                    }, 3000);
+                    showSyncStatus('Данные синхронизированы', 'success');
                 })
                 .catch((error) => {
                     console.error('Ошибка синхронизации:', error);
-                    syncStatus.textContent = 'Ошибка синхронизации';
-                    syncStatus.className = 'sync-status error';
+                    showSyncStatus('Ошибка синхронизации', 'error');
                 });
         }, 1000);
     }
@@ -195,15 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     updateTableWithData();
                     
-                    syncStatus.textContent = 'Данные обновлены из облака';
-                    syncStatus.className = 'sync-status success';
-                    
-                    setTimeout(() => {
-                        syncStatus.textContent = '';
-                        syncStatus.className = 'sync-status';
-                    }, 3000);
+                    showSyncStatus('Данные обновлены из облака', 'success');
                 }
             }
+        }, (error) => {
+            console.error('Ошибка при получении данных:', error);
+            showSyncStatus('Ошибка получения данных', 'error');
         });
     }
     
@@ -217,9 +212,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const eveningInput = row.cells[2].querySelector('input');
             const painCheckbox = row.cells[3].querySelector('input');
             
-            morningInput.value = savedData[date]?.morningTemp || '';
-            eveningInput.value = savedData[date]?.eveningTemp || '';
-            painCheckbox.checked = savedData[date]?.pain || false;
+            if (morningInput) morningInput.value = savedData[date]?.morningTemp || '';
+            if (eveningInput) eveningInput.value = savedData[date]?.eveningTemp || '';
+            if (painCheckbox) painCheckbox.checked = savedData[date]?.pain || false;
         });
     }
     
@@ -234,13 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             syncId = newSyncId;
             localStorage.setItem('healthSyncId', syncId);
-            syncStatus.textContent = 'ID синхронизации установлен';
-            syncStatus.className = 'sync-status success';
-            
-            setTimeout(() => {
-                syncStatus.textContent = '';
-                syncStatus.className = 'sync-status';
-            }, 3000);
+            showSyncStatus('ID синхронизации установлен', 'success');
             
             if (database) {
                 startFirebaseSync();
@@ -259,13 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         syncIdInput.value = newSyncId;
         syncId = newSyncId;
         localStorage.setItem('healthSyncId', syncId);
-        syncStatus.textContent = 'Новый ID создан';
-        syncStatus.className = 'sync-status success';
-        
-        setTimeout(() => {
-            syncStatus.textContent = '';
-            syncStatus.className = 'sync-status';
-        }, 3000);
+        showSyncStatus('Новый ID создан', 'success');
         
         if (database) {
             startFirebaseSync();
@@ -274,6 +257,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Создание PDF
     savePdfBtn.addEventListener('click', function() {
+        // Проверяем наличие библиотек
+        if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+            showSaveNotice('Библиотеки для PDF не загружены', true);
+            return;
+        }
+        
         const { jsPDF } = window.jspdf;
         
         // Создаем контейнер для PDF
@@ -305,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pdfTable.style.width = '100%';
         pdfTable.style.borderCollapse = 'collapse';
         pdfTable.style.border = '1px solid #000';
+        pdfTable.style.fontSize = '14px';
         
         // Заголовок таблицы
         const thead = document.createElement('thead');
@@ -316,6 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
             th.style.padding = '10px';
             th.style.backgroundColor = '#4a69bd';
             th.style.color = 'white';
+            th.style.fontWeight = 'bold';
             headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
@@ -324,13 +315,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Тело таблицы
         const tbody = document.createElement('tbody');
         const tableRows = tableBody.querySelectorAll('tr');
+        
         tableRows.forEach((row, index) => {
             const pdfRow = document.createElement('tr');
             
             const date = row.cells[0].textContent;
-            const morningTemp = row.cells[1].querySelector('input').value || '-';
-            const eveningTemp = row.cells[2].querySelector('input').value || '-';
-            const pain = row.cells[3].querySelector('input').checked ? 'Да' : 'Нет';
+            const morningInput = row.cells[1].querySelector('input');
+            const eveningInput = row.cells[2].querySelector('input');
+            const painCheckbox = row.cells[3].querySelector('input');
+            
+            const morningTemp = morningInput ? morningInput.value || '-' : '-';
+            const eveningTemp = eveningInput ? eveningInput.value || '-' : '-';
+            const pain = painCheckbox ? (painCheckbox.checked ? 'Да' : 'Нет') : 'Нет';
             
             [date, morningTemp, eveningTemp, pain].forEach(text => {
                 const td = document.createElement('td');
@@ -354,7 +350,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Создаем PDF
         html2canvas(pdfContainer, {
             scale: 2,
-            useCORS: true
+            useCORS: true,
+            logging: false
         }).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -367,24 +364,37 @@ document.addEventListener('DOMContentLoaded', function() {
             // Удаляем временный контейнер
             document.body.removeChild(pdfContainer);
             
-            saveNotice.textContent = 'PDF сохранен!';
-            saveNotice.style.backgroundColor = '#4CAF50';
-            saveNotice.classList.add('show');
-            setTimeout(() => {
-                saveNotice.classList.remove('show');
-            }, 3000);
+            showSaveNotice('PDF сохранен!');
         }).catch(error => {
             console.error('Ошибка создания PDF:', error);
-            saveNotice.textContent = 'Ошибка создания PDF!';
-            saveNotice.style.backgroundColor = '#dc3545';
-            saveNotice.classList.add('show');
-            setTimeout(() => {
-                saveNotice.classList.remove('show');
-            }, 3000);
+            showSaveNotice('Ошибка создания PDF!', true);
             
+            // Удаляем временный контейнер в случае ошибки
             if (document.body.contains(pdfContainer)) {
                 document.body.removeChild(pdfContainer);
             }
         });
     });
+    
+    // Вспомогательные функции для уведомлений
+    function showSaveNotice(message, isError = false) {
+        saveNotice.textContent = message;
+        saveNotice.style.backgroundColor = isError ? '#dc3545' : '#4CAF50';
+        saveNotice.classList.add('show');
+        setTimeout(() => {
+            saveNotice.classList.remove('show');
+        }, 3000);
+    }
+    
+    function showSyncStatus(message, type = '') {
+        syncStatus.textContent = message;
+        syncStatus.className = `sync-status ${type}`;
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                syncStatus.textContent = '';
+                syncStatus.className = 'sync-status';
+            }, 3000);
+        }
+    }
 });
