@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мониторинг здоровья</title>
+    <title>Мониторинг температуры</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
     <header>
         <h1><i class="fas fa-heartbeat"></i> Мониторинг температуры</h1>
-        <p class="subtitle">Отслеживание температуры и болей в животе</p>
-        <div class="date-range">Период: 04.10 - 13.10</div>
+        <p class="subtitle">Период: 04.10 - 13.10</p>
     </header>
     
     <div class="container">
@@ -34,47 +37,28 @@
         
         <div class="sync-section">
             <h3><i class="fas fa-sync-alt"></i> Синхронизация между устройствами</h3>
-            <p>Для синхронизации данных между устройствами используйте общий идентификатор:</p>
             
             <div class="sync-id-container">
                 <div class="sync-id-input">
-                    <input type="text" id="syncIdInput" placeholder="Введите идентификатор синхронизации">
+                    <input type="text" id="syncIdInput" placeholder="Введите ID синхронизации">
                     <button id="setSyncId">
                         <i class="fas fa-save"></i> Установить ID
                     </button>
                 </div>
                 <div class="buttons">
                     <button id="generateSyncId">
-                        <i class="fas fa-key"></i> Сгенерировать новый ID
+                        <i class="fas fa-key"></i> Новый ID
                     </button>
-                    <button id="exportBtn">
-                        <i class="fas fa-file-export"></i> Экспорт данных
-                    </button>
-                    <label for="importFile" class="import-label">
-                        <i class="fas fa-file-import"></i> Импорт данных
-                    </label>
-                    <input type="file" id="importFile" accept=".json">
-                    <button id="printBtn">
-                        <i class="fas fa-print"></i> Печать
+                    <button id="savePdfBtn">
+                        <i class="fas fa-file-pdf"></i> Скачать PDF
                     </button>
                 </div>
                 <div id="sync-status" class="sync-status"></div>
             </div>
         </div>
-        
-        <div class="instructions">
-            <h3><i class="fas fa-info-circle"></i> Как пользоваться таблицей:</h3>
-            <ul>
-                <li>Вводите температуру утром и вечером в соответствующие поля</li>
-                <li>Отмечайте галочкой, если были боли в животе</li>
-                <li>Все данные сохраняются автоматически при изменении</li>
-                <li>Для синхронизации между устройствами используйте одинаковый идентификатор</li>
-                <li>Для печати нажмите кнопку "Печать"</li>
-            </ul>
-        </div>
     </div>
 
-
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
