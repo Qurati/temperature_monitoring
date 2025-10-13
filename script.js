@@ -55,7 +55,7 @@ function initializeTable() {
 
     // Даты с 04.10 по 13.10
     const dates = [];
-    for (let i = 4; i <= 13; i++) {
+    for (let i = 4; i <= 14; i++) {
         dates.push(`${i.toString().padStart(2, '0')}.10`);
     }
 
@@ -477,4 +477,5 @@ document.addEventListener('DOMContentLoaded', function() {
 if (document.readyState === 'interactive' || document.readyState === 'complete') {
     console.log('DOM уже готов, запуск инициализации...');
     initializeApp();
+
 }
