@@ -53,7 +53,7 @@ function initializeTable() {
         return;
     }
 
-    // Даты с 04.10 по 13.10
+    // Даты с 04.10 по 14.10
     const dates = [];
     for (let i = 4; i <= 14; i++) {
         dates.push(`${i.toString().padStart(2, '0')}.10`);
@@ -338,7 +338,7 @@ function saveAsPdf() {
         pdfContainer.appendChild(title);
 
         const subtitle = document.createElement('p');
-        subtitle.textContent = 'Период: 04.10 - 13.10';
+        subtitle.textContent = 'Период: 04.10 - 14.10';
         subtitle.style.textAlign = 'center';
         subtitle.style.marginBottom = '20px';
         subtitle.style.color = '#666';
